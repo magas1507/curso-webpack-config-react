@@ -1,0 +1,746 @@
+***Tu primer build con Webpack
+*Creamos una carpeta como le quieras llamar
+(Bueno no! si eres de Windows te dejo este articulo cortito de los nombres de carpetas PROHIBIDOS )
+La creamos desde la terminal con mkdir y luego entramos a ella con cd
+
+mkdir curso-webpack
+cd curso-webpack
+
+*una vez que entres a la carpeta inicializamos nuestro repositorio con git
+
+git init
+
+*El paso que sigue es inicializar nuestro proyecto con npm y si no sabes de npm aqui esta el curso del profesor
+
+npm init -y
+
+*o si les da error “Invalid Name” usen para personalizar la configuración
+
+npm init
+
+*y para abrir el proyecto como flash es poner en la terminal y les abre el editor ( si usas VS CODE)
+
+code .
+
+*La carpeta SRC es el source de todo el proyecto ( index.js , imágenes, utils, assets, helpers, database, etc).
+
+*** Instalación de Webpack**
+si no quieres escribir ese comando también puedes usar este
+la i de install
+
+*npm i webpack webpack-cli -D
+o si usas yarn usa
+
+yarn add webpack webpack-cli -D
+
+*Y luego ejecutamos webpack
+
+npx lo que hace es ejecutar paquetes directamente de npm, este viene instalado de npm
+
+*npx webpack
+
+Al hacer esto webpack creo una carpeta llamada dist, esto lo hace por defecto webpack sin preguntarnos.
+
+Modo de desarrollo
+Por defecto webpack al compilar nuestro proyecto setea el modo “production” implícitamente pero podemos definirle el modo explícitamente corriendo:
+
+npx webpack --mode production
+npx webpack --mode development
+La diferencia radica que el modo development deja el código mas legible para los desarrolladores pero con comentarios, el modo production deja el código comprimido y mas limpio para usarse.
+
+***Instalación de Webpack y construcción del proyecto
+
+1)Clonar el proyecto
+  git clone https://github.com/gndx/js-portfolio.git
+
+2)Instalar webpack
+  con npm
+  npm install webpack webpack-cli -D 
+  
+  con Yarn
+  yarn add webpack webpack-cli -D 
+
+  ***💛 Babel Loader para JavaScript
+<h4>Apuntes</h4>
+Babel te permite hacer que tu código JavaScript sea compatible con todos los navegadores
+Debes agregar a tu proyecto las siguientes dependencias
+NPM
+
+npm install -D babel-loader @babel/core @babel/preset-env @babel/plugin-transform-runtime
+Yarn
+
+yarn add -D babel-loader @babel/core @babel/preset-env @babel/plugin-transform-runtime
+babel-loader nos permite usar babel con webpack
+@babel/core es babel en general
+@babel/preset-env trae y te permite usar las ultimas características de JavaScript
+@babel/plugin-transform-runtime te permite trabajar con todo el tema de asincronismo como ser async y await
+
+
+Debes crear el archivo de configuración de babel el cual tiene como nombre .babelrc
+{
+  "presets": [
+    "@babel/preset-env"
+  ],
+  "plugins": [
+    "@babel/plugin-transform-runtime"
+  ]
+}
+Para comenzar a utilizar webpack debemos agregar la siguiente configuración en webpack.config.js
+{
+...,
+module: {
+    rules: [
+      {
+        // Test declara que extensión de archivos aplicara el loader
+        test: /\.js$/,
+        // Use es un arreglo u objeto donde dices que loader aplicaras
+        use: {
+          loader: "babel-loader"
+        },
+        // Exclude permite omitir archivos o carpetas especificas
+        exclude: /node_modules/
+      }
+    ]
+  }
+}
+RESUMEN: Babel te ayuda a transpilar el código JavaScript, a un resultado el cual todos los navegadores lo puedan entender y ejecutar. Trae “extensiones” o plugins las cuales nos permiten tener características más allá del JavaScript común
+
+***📘 Loaders para CSS y preprocesadores de CSS
+<h4>Ideas/conceptos claves</h4>
+Un preprocesador CSS es un programa que te permite generar CSS a partir de la syntax única del preprocesador. Existen varios preprocesadores CSS de los cuales escoger, sin embargo, la mayoría de preprocesadores CSS añadirán algunas características que no existen en CSS puro, como variable, mixins, selectores anidados, entre otros. Estas características hacen la estructura de CSS más legible y fácil de mantener.
+
+post procesadores son herramientas que procesan el CSS y lo transforman en una nueva hoja de CSS que le permiten optimizar y automatizar los estilos para los navegadores actuales.
+
+<h4>Apuntes</h4>
+Para dar soporte a CSS en webpack debes instalar los siguientes paquetes
+Con npm
+
+npm i mini-css-extract-plugin css-loader -D
+Con yarn
+
+yarn add mini-css-extract-plugin css-loader -D
+css-loader ⇒ Loader para reconocer CSS
+mini-css-extract-plugin ⇒ Extrae el CSS en archivos
+Para comenzar debemos agregar las configuraciones de webpack
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+module.exports = {
+	...,
+	module: {
+    rules: [
+      {
+        test: /\.(css|styl)$/i,
+        use: [
+          MiniCssExtractPlugin.loader,
+          "css-loader",
+        ]
+      }
+    ]
+  },
+  plugins: [
+		...
+    new MiniCssExtractPlugin(),
+  ]
+}
+Si deseamos posteriormente podemos agregar herramientas poderosas de CSS como ser:
+pre procesadores
+Sass
+Less
+Stylus
+post procesadores
+Post CSS
+RESUMEN: Puedes dar soporte a CSS en webpack mediante loaders y plugins, además que puedes dar superpoderes al mismo con las nuevas herramientas conocidas como pre procesadores y post procesadores
+
+*** Copia de archivos con Webpack
+<h4>Apuntes</h4>
+Si tienes la necesidad de mover un archivo o directorio a tu proyecto final podemos usar un plugin llamado “copy-webpack-plugin”
+Para instalarlo debemos ejecutar el comando
+Para npm
+
+npm i copy-webpack-plugin -D
+Para yarn
+
+yarn add copy-webpack-plugin -D
+Para poder comenzar a usarlo debemos agregar estas configuraciones a webpack.config.js
+...
+const CopyPlugin = require('copy-webpack-plugin');
+
+module.exports = {
+	...
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, "src", "assets/images"),
+          to: "assets/images"
+        }
+      ]
+    }),
+  ]
+}
+Es importante las propiedades from y to
+From ⇒ que recurso (archivo o directorio) deseamos copiar al directorio final
+To ⇒ en que ruta dentro de la carpeta final terminara los recursos
+
+***Loaders de fuentes
+En las options:
+
+options: {
+        limit: 10000, // O LE PASAMOS UN BOOLEANOS TRUE O FALSE
+        // Habilita o deshabilita la transformación de archivos en base64.
+       mimetype: 'aplication/font-woff',
+       // Especifica el tipo MIME con el que se alineará el archivo. 
+       // Los MIME Types (Multipurpose Internet Mail Extensions)
+       // son la manera standard de mandar contenido a través de la red.
+       name: "[name].[ext]",
+       // EL NOMBRE INICIAL DEL ARCHIVO + SU EXTENSIÓN
+       // PUEDES AGREGARLE [name]hola.[ext] y el output del archivo seria 
+       // ubuntu-regularhola.woff
+       outputPath: './assets/fonts/', 
+       // EL DIRECTORIO DE SALIDA (SIN COMPLICACIONES)
+       publicPath: './assets/fonts/',
+       // EL DIRECTORIO PUBLICO (SIN COMPLICACIONES)
+      esModule: false 
+	   // AVISAR EXPLICITAMENTE SI ES UN MODULO
+}
+Para las imagenes
+
+assetModuleFilename: 'assets/images/[hash][ext]'
+Esta instrucción hace que webpack le agregue un hash ( un hash es una serie de caracteres aleatorios) y su extencion por medio de esas variables en el string
+Asi quedo el Webpack Config
+
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
+
+module.exports = {
+    // mode: 'production', // LE INDICO EL MODO EXPLICITAMENTE
+    entry: './src/index.js', // el punto de entrada de mi aplicación
+    output: { // Esta es la salida de mi bundle
+        path: path.resolve(__dirname, 'dist'),
+        // resolve lo que hace es darnos la ruta absoluta de el S.O hasta nuestro archivo
+        // para no tener conflictos entre Linux, Windows, etc
+        filename: 'main.js', 
+        // EL NOMBRE DEL ARCHIVO FINAL,
+        assetModuleFilename: 'assets/images/[hash][ext][query]'
+    },
+    resolve: {
+        extensions: ['.js'] // LOS ARCHIVOS QUE WEBPACK VA A LEER
+    },
+    module: {
+        // REGLAS PARA TRABAJAR CON WEBPACK
+        rules : [
+            {
+                test: /\.m?js$/, // LEE LOS ARCHIVOS CON EXTENSION .JS,
+                exclude: /node_modules/, // IGNORA LOS MODULOS DE LA CARPETA
+                use: {
+                    loader: 'babel-loader'
+                }
+            },
+            {
+                test: /\.css|.styl$/i,
+                use: [ MiniCssExtractPlugin.loader, 'css-loader' , 'stylus-loader' ]
+            },
+            {
+                test: /\.png/, // REGLA PARA ACEPTAR IMAGENES .PNG
+                type: 'asset/resource'
+            },
+            {
+                test: /\.(woff|woff2)$/, // REGLA PARA ARCHIVOS WOFF | WOFF2
+                use: {
+                    loader: 'url-loader', // NOMBRE DEL LOADER
+                    options: {
+                        limit: false, // O LE PASAMOS UN NUMERO
+                        // Habilita o deshabilita la transformación de archivos en base64.
+                        mimetype: 'aplication/font-woff',
+                        // Especifica el tipo MIME con el que se alineará el archivo. 
+                        // Los MIME Types (Multipurpose Internet Mail Extensions)
+                        // son la manera standard de mandar contenido a través de la red.
+                        name: "[name].[ext]",
+                        // EL NOMBRE INICIAL DEL PROYECTO + SU EXTENSIÓN
+                        // PUEDES AGREGARLE [name]hola.[ext] y el output del archivo seria 
+                        // ubuntu-regularhola.woff
+                        outputPath: './assets/fonts/', 
+                        // EL DIRECTORIO DE SALIDA (SIN COMPLICACIONES)
+                        publicPath: './assets/fonts/',
+                        // EL DIRECTORIO PUBLICO (SIN COMPLICACIONES)
+                        esModule: false
+                    }
+                }
+            }
+        ]
+    },
+    // SECCION DE PLUGINS
+    plugins: [
+        new HtmlWebpackPlugin({ // CONFIGURACIÓN DEL PLUGIN
+            inject: true, // INYECTA EL BUNDLE AL TEMPLATE HTML
+            template: './public/index.html', // LA RUTA AL TEMPLATE HTML
+            filename: './index.html'// NOMBRE FINAL DEL ARCHIVO
+        }),
+        new MiniCssExtractPlugin(), // INSTANCIAMOS EL PLUGIN
+        new CopyPlugin({ // CONFIGURACIÓN DEL COPY PLUGIN
+            patterns: [
+                {
+                    from: path.resolve(__dirname , "src" , 'assets/images'), // CARPETA A MOVER AL DIST
+                    to: "assets/images"// RUTA FINAL DEL DIST
+                }
+            ]
+        })
+    ]
+}
+
+***Te ayudo a entender algunas cosas. 😃
+Rules
+Webpack es muy personalizable, desde el module, la rule, los plugins por lo que se podrán observar muchas configuraciones.
+Recuerda que url-loader ya está integrada como módulo en Webpack 5 por lo que no es necesario instalarla, a menos que desees configurar ciertos parámetros como lo son limit para especificar el tamaño máximo de tus archivos en bytes donde si el archivo es igual o más grande utiliza el file-loader para que procese su rendimiento, esModule es para permitir que file-loader genere modulos JS que usan la sintaxis ES. Documentatción de url-loader.
+
+url-loader, incorporado en Webpack 5 permite configurar algunos parámetros genéricos.
+
+Rule.mimetype - nos permite determinar el tipo de archivo que será enlazado o cargado.
+module.exports = {
+  // ...
+  module: {
+    rules: [
+      {
+        mimetype: 'application/json',
+        type: 'json',
+      },
+    ],
+  },
+};
+Notarás que será utilizado para JS en la carga de módulos que tendrán, o pueden tener, contendio estático.
+
+Rule.generator.filename- Donde espeficamos el nombre de la salida para con la regla donde tu mencionas “EL NOMBRE DEL ARCHIVO FINAL” el cual no esta del todo mal, pero complementaria que más que un nombre, es una regla que acompañará los archivos mapeados con asset/resource
+Al final, te presento el webpack.config.js que estoy maquetando:
+
+...
+        output: {
+            path: resolve(__dirname, 'dist'),
+            filename: 'bondle.js',
+            assetModuleFilename: 'assets/images/[hash][ext][query]',
+        },
+...
+        module: {
+            rules: [
+                {
+                    test: /\.(png|svg|jpg|jpeg|gif)$/i,
+                    type: 'asset/resource',
+                },
+                {
+                    test: /\.(woff|woff2|eot|ttf|otf)$/i,
+                    type: 'asset/resource',
+                    generator: {
+                        filename: 'assets/fonts/[hash][ext]',
+                    },
+                },
+...
+Configuraciones más, configuraciones menos, te adjunté los enlaces para que complementes tu documentación y puedas elaborar más tipos de archvios de configuración de webpack
+
+***¿Por qué es importante usar Hashes en nuestros archivos?
+Los recursos que se guardan en memoria cache suceden cuando el navegador entra a un sitio por primera vez detecta los recursos y los guarda. Por ello la siguiente vez sera mucho más rápido porque estarán en memoria
+La desventaja esta cuando sacamos una nueva versión, porque tendrán un mismo nombre evitando que se descargue los nuevos cambios, por lo tanto, el usuario no recibirá los nuevos cambios
+Para que no haya conflictos con la cache una vez que tengamos nuestro proyecto en producción es importante darles un hash para cada nueva versión
+
+Probando un poco más dentro del proyecto, para activar terser por defecto de webpack solo debemos usar el siguiente código
+
+module.exports = {
+... 
+optimization: {
+    minimize: true
+  }
+}
+Es decir que no podemos usar la propiedad minimizer: []. Pero si deseáramos personalizar la optimización y agregar plugins como ser css-minimizer-webpack-plugin ahi toca instalar y usar terser-webpack-plugin dentro de optimizations, otro caso de este tipo sería si desearas personalizar el plugin de terser.
+
+OPTIMIZATION WITH WEBPACK 😄
+
+RECURSOS OP
+
+<h3>¿Por qué es importante usar Hashes en nuestros archivos?</h3>
+Los recursos que se guardan en memoria cache suceden cuando el navegador entra a un sitio por primera vez detecta los recursos y los guarda. Por ello la siguiente vez sera mucho más rápido porque estarán en memoria
+La desventaja esta cuando sacamos una nueva versión, porque tendrán un mismo nombre evitando que se descargue los nuevos cambios, por lo tanto, el usuario no recibirá los nuevos cambios
+Para que no haya conflictos con la cache una vez que tengamos nuestro proyecto en producción es importante darles un hash para cada nueva versión
+Segun la documentación oficial de webpack nos comunica que actualmente terser-webpack-plugin viene incluido desde webpack 5 😄
+
+Fuente:
+
+TerserWebpackPlugin
+
+Probando un poco más dentro del proyecto, para activar terser por defecto de webpack solo debemos usar el siguiente código
+
+module.exports = {
+...
+optimization: {
+    minimize:true
+  }
+}
+
+Es decir que no podemos usar la propiedad minimizer: []. Pero si deseáramos personalizar la optimización y agregar plugins como ser css-minimizer-webpack-plugin ahi toca instalar y usar terser-webpack-plugin dentro de optimizations, otro caso de este tipo sería si desearas personalizar el plugin de terser
+
+Una de las cosas mas importantes por la cual utilizamos webpack es la optimización de nuestro proyecto, en comprimir nuestro css, nuestro javascript y optimizar nuestras imagenes, entre otras caracteristicas.
+
+Vamos a instalar unas dependencias que nos ayudaran con esto
+
+npm install css-minimizer-webpack-plugin terser-webpack-plugin -D
+Ahora vamos a añadir nuestra configuración en nuestro archivo de webpack
+//Importamos los plugins que acabamos de instalar
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const TerserPlugin = requiere('terser-webpack-plugin');
+Luego vamos a añadir esto a nuestro archivo como una nueva configuración llamada optimization
+optimization:{
+    minimize: true,
+    minimizer: [
+      //Instanciamos las dependencias que estamos importando
+      new CssMinimizerPlugin(),
+      new TerserPlugin(),
+    ]
+  }
+Otra de las optimizaciones que podemos realizar para poder verificar las versiones que estamos trabajando tiene que ver mucho directamente con los hash
+
+Asi que vamos a identificar cada bild de nuestro proyecto con un hash
+
+añadimos los hash en output
+output:{
+    path: path.resolve(__dirname, 'dist'),
+    //cambios este elemento y le pondremos tanto el name para que lo identifique
+      //como la parte del contenthash para que nos muestre eso
+    filename: '[name].[contenthash].js',
+    //para insertar el cambio y mover las fuentes a otra carpte lo hacemos aqui
+    assetModuleFilename: 'assets/image/[hash][ext][query]'
+  },
+lo añadimos en nuestras fuentes
+{
+
+        test: /\.(woff|woff2)$/,
+        use: {
+          loader: 'url-loader',
+          options:{
+
+            limit:10000,
+            mimetype:"application/font-woff",
+            name: "[name].[contenthash].[ext]",
+            outputPath: "./assets/fonts/",
+            publicPath: "./assets/fonts/",
+            esModule: false,
+          }
+        }
+
+      }
+Lo añadimos en la instancia de la dependencia que compila nuestro css
+//Le anadimos una configuracion al plugin que nos permite compilar en css
+    new MiniCssExtracPlugin({
+
+      filename: 'assets/[name].[contenthash].css'
+
+    }),
+Terminamos la configuracion y ahora compilamos webpack y podremos ver los archivos optimizados en dist/assets
+
+*** Webpack Alias
+<h4>Apuntes</h4>
+Alias ⇒ nos permiten otorgar nombres paths específicos evitando los paths largos
+Para crear un alias debes agregar la siguiente configuración a webpack
+
+No olvides comentar que alias forma parte del objeto resolve el cual nos permite configurar la forma en que webpack resolverá los módulos incorporados.
+En nuestro camino, tenemos dos:
+
+resolve.alias - para crear atajos que optimizan el tiempo de búsqueda e incorporación de módulos (commonJS o ES6)
+resolve.extensions - para darle prioridad en resolución para con las extensiones donde si hay archivos nombrados igualmente, pero con diferentes extensiones, webpack resolverá conforme están listados.
+
+En esta clase vamos a aprender a como utilizar alias para los paths que estamos utilizando
+
+Para crear un alias debes agregar la siguiente configuración a webpack
+
+resolve:{
+
+    extensions:['.js'],
+    //Agregamos una key alias a nuestro objeto resolve
+      //para ponerles nombres mas pequenos a las extensiones
+        //de nuestros archivos
+    alias:{
+      '@utils': path.resolve(__dirname, 'src/utils/'),
+      '@templates': path.resolve(__dirname, 'src/templates/'),
+      '@styles': path.resolve(__dirname, 'src/styles/'),
+      '@images': path.resolve(__dirname, 'src/assets/images/'),
+
+    }
+  }
+Estos alias los vamos a poder utilizar dentro de nuestro proyecto para que cuando webpack lo prepare va a identificar que esta es la ruta a la que tenemos que entrar
+
+Luego agregamos estos alias en nuestras rutas en nuestro archivo de js
+import Template from '@templates/Template.js';
+import '@styles/main.css';
+
+(async function App() {
+  const main = null || document.getElementById('main');
+  main.innerHTML = await Template();
+})();
+Lo agregamos en nuestro archivo que genera nuestro template
+import getData from '@utils/getData.js';
+//importamos la configuracion de las imagenes
+
+import github from '@images/github.png';
+import twitter from '@images/twitter.png';
+import instagram from '@images/instagram.png';
+
+***Variables de entorno
+<h4>Apuntes</h4>
+Es importante considerar las variables de entorno va a ser un espacio seguro donde podemos guardar datos sensibles
+Por ejemplo, subir llaves al repositorio no es buena idea cuando tienes un proyecto open source
+Para instalar debemos correr el comando
+NPM
+
+npm install -D dotenv-webpack
+YARN
+
+yarn add -D dotenv-webpack
+Posteriormente debemos crear un archivo .env donde estarán la clave para acceder a la misma y el valor que contendrán
+
+# Ejemplo
+API=https://randomuser.me/api/
+Es buena idea tener un archivo de ejemplo donde, el mismo si se pueda subir al repositorio como muestra de que campos van a ir
+Una vez creado el archivo .env debemos agregar la siguiente configuración en webpack.config.js
+
+...
+const Dotenv = require('dotenv-webpack');
+module.exports = {
+	...
+	plugins: [
+		new Dotenv()
+  ],
+}
+dotenv-webpack ⇒ Leera el archivo .env por defecto y lo agregar a nuestro proyecto
+Para usarlas debes hacer lo siguiente
+const nombre = process.env.NOMBRE_VARIABLE;
+Toda la configuración se podrá acceder desde process.env
+
+***Webpack en modo desarrollo
+Creamos un nuevo archivo:
+webpack.config.dev.js
+Copiamos todo lo de webpack.config.js a el archivo que acabamos de crear.
+Borramos o comentamos el siguiente código, ya que no necesitamos optimizar para el modo de desarrollo (Queremos ver cuando funcionan las cosas).
+    optimization: {
+        minimize: true,
+        minimizer: [
+            new CssMinimizerPlugin(),
+            new TerserPlugin()
+        ]
+    }
+También borramos o comentamos por la misma razón:
+
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin')
+Seguido del atributo output añadimos:
+output: {
+},
+mode: 'development',
+En package.json:
+"dev": "webpack --config webpack.config.dev.js" 
+y ejecutamos npm run dev
+
+*** Webpack en modo producción
+<h4>Apuntes</h4>
+Actualmente tenemos el problema de tener varios archivos repetidos los cuales se fueron acumulando por compilaciones anteriores
+Para ello puedes limpiar la carpeta cada vez que hacemos un build, usando clean-webpack-plugin
+Cabe recalcar que esta característica es mucho más util para la configuración de producción
+Para instalarlo debes correr el siguiente comando:
+NPM
+
+npm install -D clean-webpack-plugin
+YARN
+
+yarn add -D clean-webpack-plugin
+Para agregarlo a nuestra configuración de webpack agregamos los siguientes cambios a webpack.config.js
+...
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+module.exports = {
+	...
+	plugins: [
+		...
+		new CleanWebpackPlugin()
+	]
+}
+***Lo primero que debemos hacer es crear una cuenta en Netlify. Lo siguiente es crear un archivo en la raíz del proyecto llamado netlify.toml el cual va a llevar la siguiente configuración:
+
+## **netlify.toml**
+[build]
+    publish = "dist" // ¿cual va a ser la carpeta a publicar?
+    command = "npm run build" // Comando a ejecutar para el deploy
+Para el siguiente paso debemos ya tener nuestro repositorio en algún servicio de la nube, como Github. Ahora, vamos a la pagina de Netlify para crear el nuevo sitio.
+
+Crear nuevo sitio → Seleccionar nube (Github) → Elegir repositorio y rama a subir → Deploy
+
+Apartir de ahora Netlify nos levanta el servidor de manera gratuita, este proceso puede ser lento ya que es un servicio gratuito. En el summary de nuestro deploy podemos ver el log del build donde podriamos ver los errores presentes.
+
+En el proyecto actual, al hacer uso de una variable de entorno, necesitamos realizar la siguiente configuración para que Netlify pueda trabajar con ella: Creamos una carpeta llamada scripts/ y adentro de esta carpeta vamos a crear un archivo llamado create-env.js. En este archivo vamos a colocar este código
+
+// **create-env.js**
+
+const fs = require('fs'); // fs = file system
+
+// fs.writeFileSync("path", `argumento a crear`);
+fs.writeFileSync("./.env", `API=${process.env.API}\n`);
+Pero ¿de dónde vamos a obtener/setear el process.env? Lo vamos a asignar en netlify, en nuestro deploy vamos a buscar la Sección de Enviroment → Enviroment Variables → Edit Variables. En nuestro caso la llamaremos API y asignaremos el valor de nuestro API: https://randomuser.me/api/
+
+Ahora, debemos ejecutar este script antes de ejecutar el comando de build, para que sea enviado a netlify. Vamos a nuestro package.json y vamos a modificar el script build de la siguiente manera:
+
+"scripts": {
+    ...
+    "build": "node ./scripts/create-env.js && webpack --config webpack.config.js",
+  }
+⚠️Cuidado al anidar la ejecución de scripts, porque si el primero en ejecutarse lo hace como demonio, puede causar un problema ya que no va a ejecutarse el segundo script.
+
+Luego de todos estos cambios debemos empujarlos a la nube ✌🏻
+
+***Webpack Dev Server
+<h4>Ideas/conceptos claves</h4>
+HTML5 History API permite la manipulación de session history del navegador, es decir las páginas visitadas en el tab o el frame en la cual la página está cargada.
+
+<h4>Recursos</h4>
+How To Optimize Your Site With GZIP Compression
+
+<h4>Apuntes</h4>
+Cuando trabajamos con webpack deseamos ver los cambios en tiempo real en un navegador
+Para tener esta característica esta webpack-dev-server
+Para ello debemos instalarlo
+NPM
+
+npm install -D webpack-dev-server
+Yarn
+
+yarn add -D webpack-dev-server
+Posteriormente debemos agregar la siguiente configuración en webpack.config.dev.js
+Lo hacemos en la configuración de desarrollo debido a que esta característica solo nos ayudara a ver cambios al momento de desarrollar la aplicación
+module.exports = {
+	...
+	devServer: {
+    contentBase: path.join(__dirname, 'dist'),
+    compress: true,
+    historyApiFallback: true,
+    port: 3000,
+  }
+}
+En la configuración podemos observar lass siguientes propiedades
+contentBase ⇒ Le dice al servidor donde tiene que servir el contenido, solo es necesario si quieres servir archivos estáticos
+compress ⇒ Habilita la compresión gzip
+historyApiFallback ⇒ cuando estas usando HTML5 History API la página index.html sera mostrada en vez de una respuesta 404
+Port ⇒ es el puerto donde vamos a realizar las peticiones
+Para comenzar a utilizarlo debes agregar el siguiente script a package.json
+{
+	...
+	"scripts": {
+	...
+	"start": "webpack serve --config webpack.config.dev.js"
+	}
+}
+
+***🥉 Webpack Bundle Analyzer
+<h4>Apuntes</h4>
+Cuando tenemos un proyecto es buena idea poder revisar su impacto en tamaño por ese motivo webpack nos ofrece un paquete para poder verificar y analizar el tamaño del bundle final
+Para instalar corremos el comando
+NPM
+
+npm install -D webpack-bundle-analyzer
+YARN
+
+yarn add -D webpack-bundle-analyzer
+Si deseamos hacer un análisis debemos correr los siguientes comandos
+npx webpack --profile --json > stats.json
+npx webpack-bundle-analyzer stats.json
+
+***Webpack DevTools
+<h4>Ideas/conceptos claves</h4>
+source map es un mapeo que se realiza entre el código original y el código transformado, tanto para archivos JavaScript como para archivos CSS. De esta forma podremos debuggear tranquilamente nuestro código.
+
+<h4>Apuntes</h4>
+Con las devtools de webpack te permite crear un mapa de tu proyecto y con el podemos
+Leer a detalle
+Analizar particularidades de lo que está compilando nuestro proyecto
+Para comenzar debemos ir a webpack.config.js y agregar la propiedad devtool: "source-map"
+Esta opción genera un source map el cual posteriormente chrome lo lee y te permite depurar de una mejor forma
+
+
+***Comandos para comenzar con el proyecto
+# Descargar el repositorio de Github
+git clone https://github.com/platzi/curso-webpack-react.git
+# Movernos a la carpeta
+cd curso-webpack-react
+# Abrir VS Code
+code .
+# Inicializar npm
+npm init -y
+# instalar dependencias
+npm install react react-dom
+
+*** Configuración de Webpack 5 para React.js
+Instalación de dependecias.
+
+// Para Webpack
+npm i -D webpack webpack-cli webpack-dev-server
+
+// Para Babel
+npm i @babel/core babel-loader @babel/preset-env @babel/preset-react -D
+Configuración de “.babelrc”:
+
+{
+    "presets": [
+        "@babel/preset-env",
+        "@babel/preset-react"
+    ]
+}
+Configuración de “webpack.config.js”
+
+const path = require('path');
+
+module.exports = {
+    entry: './src/index.js',
+    output: {
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'main.js'
+    },
+    resolve: {
+        extensions: ['.js', '.jsx']
+    },
+    devServer: {
+        contentBase: path.join(__dirname, 'dist'),
+        compress: true,
+        port: 8080
+    },
+    module: {
+        rules: [
+            {
+                test: /\.(js|jsx)$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader'
+                }
+            }
+        ]
+    }
+}
+
+***Configuración de plugins y loaders para React
+Instalación de dependencias:
+
+npm i -D html-loader html-webpack-plugin
+Configuración “webpack.config.js”
+
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+
+module.exports = {
+	module: {
+		rules: [
+			{
+				test: /\.html$/,
+				use: {
+					loader: 'html-loader'
+				}
+			}
+		]
+	},
+	plugins: [
+        new HtmlWebpackPlugin({
+            template: './src/public/index.html',
+            filename: 'index.html'
+        })
+    ]
+}
